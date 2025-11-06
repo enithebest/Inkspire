@@ -8,3 +8,7 @@ diplomaInkspire/inksipre/.env.*
 
 # Ignore nested VCS backups
 **/.git.bak/
+
+# Root env files
+/.env
+/.env.*
