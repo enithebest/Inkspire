@@ -1,13 +1,38 @@
 <script>
   export let data;
   let message = '';
-  let tab = 'account'; // 'account' | 'uploads'
+  let tab = 'account'; // 'account' | 'uploads' | 'orders'
 
   function formatDate(d) {
     try {
       return new Date(d).toLocaleString();
     } catch {
       return d;
+    }
+  }
+
+  function reorder(order) {
+    try {
+      const raw = localStorage.getItem('cart');
+      const cart = raw ? JSON.parse(raw) : [];
+      for (const item of order.items || []) {
+        cart.push({
+          product_id: item.product_id,
+          variant_id: item.variant_id,
+          name: item.name,
+          color: item.color,
+          size: item.size,
+          price: item.unit_price,
+          qty: item.quantity || 1,
+          image_url: item.image_url
+        });
+      }
+      localStorage.setItem('cart', JSON.stringify(cart));
+      // Update nav badge immediately
+      window.dispatchEvent(new Event('storage'));
+      alert('Items added to cart');
+    } catch (e) {
+      console.error(e);
     }
   }
 </script>
@@ -32,6 +57,11 @@
         on:click={() => (tab = 'uploads')}
         type="button"
       >Uploads</button>
+      <button
+        class={`px-4 py-2 rounded-lg text-sm font-medium border ${tab === 'orders' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white/5 border-white/10 text-gray-200 hover:bg-white/10'}`}
+        on:click={() => (tab = 'orders')}
+        type="button"
+      >Orders</button>
     </div>
 
     {#if tab === 'account'}
@@ -99,6 +129,48 @@
                   </form>
                 </div>
               </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
+    {:else if tab === 'orders'}
+      <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+        <h2 class="text-xl font-semibold mb-4 text-indigo-300">My Orders</h2>
+        {#if (data.orders?.length || 0) === 0}
+          <p class="text-gray-300">No orders yet.</p>
+        {:else}
+          <div class="space-y-4">
+            {#each data.orders as order (order.id)}
+              <details class="bg-white/5 border border-white/10 rounded-lg" open={false}>
+                <summary class="cursor-pointer list-none px-4 py-3 flex items-center justify-between">
+                  <div class="flex flex-col">
+                    <span class="text-sm text-gray-300">Order #{order.id}</span>
+                    <span class="text-xs text-gray-400">{formatDate(order.created_at)} • {order.status}</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="text-sm font-semibold text-white">${order.total_price}</span>
+                    <button type="button" class="text-sm px-3 py-1 rounded bg-blue-600 hover:bg-blue-500" on:click={() => reorder(order)}>Reorder</button>
+                  </div>
+                </summary>
+                <div class="px-4 pb-4">
+                  {#if (order.items?.length || 0) === 0}
+                    <p class="text-gray-300 text-sm">No items.</p>
+                  {:else}
+                    <ul class="divide-y divide-white/10">
+                      {#each order.items as it (it.id)}
+                        <li class="py-3 flex items-center gap-3">
+                          <img src={it.image_url ?? '/placeholder.png'} alt={it.name} class="w-12 h-12 object-cover rounded" />
+                          <div class="flex-1">
+                            <div class="text-sm text-white">{it.name}</div>
+                            <div class="text-xs text-gray-400">{it.color || '-'} / {it.size || '-'} • Qty {it.quantity}</div>
+                          </div>
+                          <div class="text-sm text-gray-200">${it.unit_price}</div>
+                        </li>
+                      {/each}
+                    </ul>
+                  {/if}
+                </div>
+              </details>
             {/each}
           </div>
         {/if}

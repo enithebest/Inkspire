@@ -21,9 +21,54 @@ export const load = async ({ cookies }) => {
     [user.id]
   );
 
+  // Fetch recent orders (with items) for this user
+  const [ordersRows] = await db.query(
+    'SELECT id, total_price, status, created_at FROM orders WHERE user_id = ? ORDER BY id DESC LIMIT 50',
+    [user.id]
+  );
+
+  // For each order, fetch its items
+  const orders = [];
+  for (const o of ordersRows) {
+    const [itemsRows] = await db.query(
+      `SELECT oi.id, oi.quantity, oi.unit_price,
+              p.id AS product_id, p.name, p.image_url,
+              v.id AS variant_id, v.option_values
+         FROM order_items oi
+         JOIN products p ON oi.product_id = p.id
+    LEFT JOIN product_variants v ON oi.variant_id = v.id
+        WHERE oi.order_id = ?
+        ORDER BY oi.id ASC`,
+      [o.id]
+    );
+
+    const items = itemsRows.map((it) => {
+      let color = null;
+      let size = null;
+      try {
+        const ov = typeof it.option_values === 'string' ? JSON.parse(it.option_values) : it.option_values;
+        color = ov?.color ?? null;
+        size = ov?.size ?? null;
+      } catch {}
+      return {
+        id: it.id,
+        product_id: it.product_id,
+        variant_id: it.variant_id,
+        name: it.name,
+        image_url: it.image_url,
+        unit_price: it.unit_price,
+        quantity: it.quantity,
+        color,
+        size
+      };
+    });
+
+    orders.push({ ...o, items });
+  }
+
   db.release();
 
-  return { user, uploads };
+  return { user, uploads, orders };
 };
 
 export const actions = {
