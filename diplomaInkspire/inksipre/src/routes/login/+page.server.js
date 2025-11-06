@@ -24,8 +24,9 @@ export const actions = {
         maxAge: 60 * 60 * 24 * 7 // 1 week
       });
 
-      // Redirect to dashboard
-      throw redirect(302, '/admin');
+      // Redirect based on role
+      const redirectTo = result.role === 'admin' ? '/admin' : '/profile';
+      throw redirect(302, redirectTo);
     }
 
     // Return any login error (email not found or wrong password)
