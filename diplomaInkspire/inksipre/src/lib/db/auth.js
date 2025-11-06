@@ -38,7 +38,7 @@ export async function login(email, password) {
 
   db.release();
 
-  return { token, role: user.role || 'user', message: 'Login successful' };
+  return { token, message: 'Login successful' };
 }
 
 export async function register(email, full_name, password) {
@@ -56,9 +56,8 @@ export async function register(email, full_name, password) {
     [email, hashed, full_name]
   );
 
-  const [rows] = await db.query('SELECT id, role FROM users WHERE email = ?', [email]);
+  const [rows] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
   const userId = rows[0].id;
-  const role = rows[0].role || 'user';
 
   const token = uuidv4();
   const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -69,5 +68,5 @@ export async function register(email, full_name, password) {
   );
 
   db.release();
-  return { token, role, message: 'User registered successfully' };
+  return { token, message: 'User registered successfully' };
 }

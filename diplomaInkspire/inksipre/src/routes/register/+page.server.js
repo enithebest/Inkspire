@@ -14,7 +14,7 @@ export const actions = {
     if (!validatePassword(password)) return { message: 'Password must be at least 8 characters' };
     if (password !== confirmPassword) return { message: 'Passwords do not match' };
 
-    const { token, role, message } = await register(email, full_name, password);
+    const { token, message } = await register(email, full_name, password);
 
     if (token) {
       cookies.set('session', token, {
@@ -24,8 +24,7 @@ export const actions = {
         maxAge: 60 * 60 * 24 * 7
       });
 
-      const redirectTo = role === 'admin' ? '/admin' : '/profile';
-      throw redirect(302, redirectTo); 
+      throw redirect(302, '/admin'); 
     }
 
     return { message };
