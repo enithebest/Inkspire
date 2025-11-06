@@ -1,0 +1,10 @@
+# Node modules
+**/node_modules/
+
+# Env files (keep examples)
+diplomaInkspire/inksipre/.env
+diplomaInkspire/inksipre/.env.*
+!diplomaInkspire/inksipre/.env.example
+
+# Ignore nested VCS backups
+**/.git.bak/
