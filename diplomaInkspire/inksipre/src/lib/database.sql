@@ -8,6 +8,9 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash VARCHAR(255),
   full_name VARCHAR(255),
   role ENUM('user','admin') DEFAULT 'user',
+  -- Session management (used by auth hooks)
+  session_token VARCHAR(255) NULL,
+  session_expiration DATETIME NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -34,6 +37,9 @@ CREATE TABLE IF NOT EXISTS products (
   name VARCHAR(255) NOT NULL,
   description TEXT,
   base_price DECIMAL(10,2) DEFAULT 0.00,
+  -- Category and image used across the app
+  category ENUM('hoodies','tshirts','sweatshirts','mugs') NULL,
+  image_url VARCHAR(255) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -44,6 +50,7 @@ CREATE TABLE IF NOT EXISTS product_variants (
   sku VARCHAR(100),
   option_values JSON, -- {"size":"M","color":"Black"}
   price DECIMAL(10,2) DEFAULT 0.00,
+  image_url VARCHAR(255) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
